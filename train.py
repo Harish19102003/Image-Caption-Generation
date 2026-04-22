@@ -16,7 +16,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if device.type == "cuda":
     torch.set_float32_matmul_precision( 'high')
 
-output_dir = output_dir
 early_stop = EarlyStopping(
         monitor  = 'val_loss',
         patience = 5,        # stop if val_loss doesn't improve for 5 epochs
@@ -46,24 +45,21 @@ trainer = pl.Trainer(max_epochs=epochs, gradient_clip_val=grad_clip,accelerator=
 def main():
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description="Train the image captioning model.")
-    parser.add_argument("--resume", action="store_true",default=False, help="Resume training from an existing model.")
+    parser.add_argument("--resume", action="store_true", help="Resume training from a checkpoint.")
     args = parser.parse_args()
-    if args.resume :
-        if os.path.exists(model_path):
-            print(f"Loading existing model from {model_path} for continued training...")
-            model = load_model(model_path)
-            trainer.fit(model, train_loader, val_loader)
-        else:
-            print("No existing model found or training flag not set")
-    
-    else:
-        if not os.path.exists(model_path):   
-            output_dir.mkdir(parents=True, exist_ok=True)
-        from model import model
-        start = time.time() // 60
-        trainer.fit(model, train_loader, val_loader)
-        end = time.time() // 60
-        print(f"Training time: {end - start}")
+
+    ckpt = None
+    if args.resume:
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"No checkpoint found at {model_path}")
+        print(f"Resuming from {model_path}...")
+        ckpt = model_path
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    start = time.time()
+    trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt)
+    print(f"Training time: {(time.time() - start) / 60:.1f} min")
 
 if __name__ == "__main__":
     main()
