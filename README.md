@@ -122,6 +122,11 @@ This will:
 - Save checkpoints
 
 ---
+## To Resume training from an existing model.
+```bash
+python train.py --resume True
+```
+---
 
 ## Evaluation and Inference
 
