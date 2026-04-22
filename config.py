@@ -1,8 +1,8 @@
 from pathlib import Path
 
-root_dir = Path("data/stanford Image Paragraph Captioning dataset")
+root_dir = Path("data/")
 caption_file = "stanford_df_rectified.csv"
-img_dir = "stanford_images"
+img_dir = "stanford_img/content/stanford_images"
 output_dir = Path("checkpoints")
 output_file = "img_caption_model"
 model_path = Path(f"{output_dir}/{output_file}.ckpt")
