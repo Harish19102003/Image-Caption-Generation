@@ -1,12 +1,10 @@
 import math
-from numpy import size
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import pytorch_lightning as pl
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
-from get_loader import dataset, transform
+from get_loader import dataset
 from config import img_size, d_model, n_heads, n_layers, d_ff, dropout, max_len, lr, weight_decay
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -349,7 +347,7 @@ class VisionTransformer(pl.LightningModule):
     
 
     def generate_caption(self, image, max_len=max_len, beam_size=5):
-        image = transform(image).to(device).unsqueeze(0)
+        image = dataset.transform(image).to(device).unsqueeze(0)
         self.eval()
         if beam_size == 1:
             with torch.no_grad():
