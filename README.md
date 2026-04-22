@@ -124,7 +124,7 @@ This will:
 ---
 ## To Resume training from an existing model.
 ```bash
-python train.py --resume True
+python train.py --resume 
 ```
 ---
 
