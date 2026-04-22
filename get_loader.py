@@ -1,3 +1,6 @@
+import pickle
+from spacy.vocab import Vocab
+from spacy.vocab import Vocab
 import torch
 from torch import Generator
 from PIL import Image
@@ -90,11 +93,30 @@ class Vocabulary:
 
         return " ".join(words).capitalize()
     
+    def save_vocabulary(self, filepath):
+        """Save vocabulary to file"""
+        with open(filepath, 'wb') as f:
+            pickle.dump(self, f)
+
+
+    def load_vocabulary(self, filepath):
+        """Load vocabulary from file"""
+        with open(filepath, 'rb') as f:
+            return pickle.load(f)
+    
 class Build_Dataset(Dataset):
-    def __init__(self,root_dir,image_dir,caption_file,Vocab,img_size,freq_threshold=5,augment=None,split=None):
+    def __init__(self,root_dir,image_dir,caption_file,build_vocab=False,img_size=224,freq_threshold=5,augment=None,split=None):
         self.root_dir = Path(root_dir)
         self.img_dir = self.root_dir / image_dir
         self.df = pd.read_csv(self.root_dir/caption_file)
+        # build vocabulary from the entire dataset to ensure all words are included, even if some splits have fewer examples
+        self.vocab_caption = self.df["Paragraph"].values
+        self.vocab = Vocabulary(freq_threshold)
+        if build_vocab:
+            self.vocab.build_vocabulary(self.vocab_caption.tolist())
+            self.vocab.save_vocabulary(self.root_dir / "vocab.pkl")
+        else:
+            self.vocab = self.vocab.load_vocabulary(self.root_dir / "vocab.pkl")
         self.img_size = img_size
         # already computed mean and std for the dataset to avoid recomputation every time
         self.mean = [0.4695, 0.4511, 0.4148]
@@ -115,6 +137,7 @@ class Build_Dataset(Dataset):
             self.transform = transforms.Compose([
                     transforms.Lambda(lambda x: x.convert("RGB")),
                     transforms.Resize(self.img_size),
+                    transforms.CenterCrop(self.img_size),
                     transforms.ToTensor(),
                     transforms.Normalize(mean=self.mean, std=self.std)
                 ])
@@ -127,15 +150,12 @@ class Build_Dataset(Dataset):
             self.df = self.df[self.df["test"] == True].reset_index(drop=True)
         elif split is None:
             self.df = self.df
-        elif split is not None:
+        else:
             raise ValueError("split must be one of 'train', 'val', 'test', or None")
 
         self.img = self.df["Image_name"].values
         self.caption = self.df["Paragraph"].values
-
-        self.vocab = Vocab(freq_threshold)
-        self.vocab.build_vocabulary(self.caption.tolist())
-
+        
     def mean_and_std(self):
         """Compute the mean and std of the dataset."""
         mean = torch.zeros(3)
@@ -175,8 +195,6 @@ class MyCollate:
 
         captions = [item[1] for item in batch]
 
-        captions = [torch.tensor(cap) for cap in captions]
-
         captions = pad_sequence(
             captions,
             batch_first=True,
@@ -186,16 +204,12 @@ class MyCollate:
         return images, captions    
     
 
-dataset    = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size,augment=False, split=None)
-mean, std = dataset.mean_and_std()
-print(f"Dataset mean: {mean}")
-print(f"Dataset std: {std}")
-
+dataset    = Build_Dataset(root_dir, img_dir, caption_file, True, img_size, augment=augment, split=None)
 pad_idx    = dataset.vocab.stoi["<pad>"]
 
-train_dataset = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size, augment=augment, split="train")
-val_dataset   = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size, augment=augment, split="val")
-test_dataset  = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size, augment=augment, split="test")
+train_dataset = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=augment, split="train")
+val_dataset   = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=False, split="val")
+test_dataset  = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=False, split="test")
 train_loader  = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=MyCollate(pad_idx), generator=g)
 val_loader    = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
 test_loader   = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
