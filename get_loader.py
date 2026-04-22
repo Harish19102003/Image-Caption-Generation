@@ -10,9 +10,12 @@ from collections import Counter
 import spacy
 import re
 import numpy as np
-from config import root_dir, img_dir, caption_file, batch_size, img_size
+from config import root_dir, img_dir, caption_file, batch_size, img_size, augment
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+
+g = Generator()
+g.manual_seed(42)
 
 class Vocabulary:
     """Simple vocabulary wrapper."""
@@ -88,10 +91,33 @@ class Vocabulary:
         return " ".join(words).capitalize()
     
 class Build_Dataset(Dataset):
-    def __init__(self,root_dir,image_dir,caption_file,Vocab,freq_threshold=5,transform=None,split=None):
+    def __init__(self,root_dir,image_dir,caption_file,Vocab,img_size,freq_threshold=5,augment=None,split=None):
         self.root_dir = Path(root_dir)
         self.img_dir = self.root_dir / image_dir
         self.df = pd.read_csv(self.root_dir/caption_file)
+        self.img_size = img_size
+        # already computed mean and std for the dataset to avoid recomputation every time
+        self.mean = [0.4695, 0.4511, 0.4148]
+        self.std = [0.2430, 0.2382, 0.2423]
+        if augment:
+            # With augmentations (flip + color jitter)
+            self.transform = transforms.Compose([
+                transforms.Lambda(lambda x: x.convert("RGB")),
+                transforms.Resize(self.img_size),
+                transforms.CenterCrop(self.img_size),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ColorJitter(brightness=0.08, contrast=0.08, saturation=0.02, hue=0.02),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=self.mean, std=self.std),
+            ])
+        else:
+            # Without augmentations
+            self.transform = transforms.Compose([
+                    transforms.Lambda(lambda x: x.convert("RGB")),
+                    transforms.Resize(self.img_size),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=self.mean, std=self.std)
+                ])
 
         if split == "train":
             self.df = self.df[self.df["train"] == True].reset_index(drop=True)
@@ -109,8 +135,21 @@ class Build_Dataset(Dataset):
 
         self.vocab = Vocab(freq_threshold)
         self.vocab.build_vocabulary(self.caption.tolist())
-        self.transform = transform
 
+    def mean_and_std(self):
+        """Compute the mean and std of the dataset."""
+        mean = torch.zeros(3)
+        std = torch.zeros(3)
+        for img_name in self.img:
+            img_path = self.img_dir / f"{img_name}.jpg"
+            img = Image.open(img_path).convert("RGB")
+            img_tensor = transforms.ToTensor()(img)
+            mean += img_tensor.mean(dim=[1, 2])
+            std += img_tensor.std(dim=[1, 2])
+        mean /= len(self.img)
+        std /= len(self.img)
+        return mean, std
+    
     def __len__(self):
         return len(self.df)  
     
@@ -118,9 +157,7 @@ class Build_Dataset(Dataset):
         caption = self.caption[index]
         img_id  = f"{self.img[index]}.jpg"
         img = Image.open(self.img_dir/img_id)
-
-        if self.transform:
-            img = self.transform(img)
+        img = self.transform(img)
         
         numerical_caption = self.vocab.numericalize(caption)
         numerical_caption = torch.tensor(numerical_caption) 
@@ -148,41 +185,17 @@ class MyCollate:
 
         return images, captions    
     
-    
-g = torch.Generator()
-g.manual_seed(42)
 
-def mean_std():
-    transform = transforms.Compose([
-    transforms.Lambda(lambda x: x.convert("RGB")),
-    transforms.Resize((224,224)),
-    transforms.ToTensor()])
-    dataset    = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, transform=transform)
-    pad_idx    = dataset.vocab.stoi["<pad>"]
-    data_loader = DataLoader(dataset, batch_size=len(dataset),shuffle=False,collate_fn=MyCollate(pad_idx), generator=g)
-    images = next(iter(data_loader))[0]
-    images.to(device)
-    mean,std = images.mean([0,2,3]), images.std([0,2,3])
-    return mean,std
-
-
-# already computed mean and std for the dataset to avoid recomputation every time
-mean, std = [0.4695, 0.4511, 0.4148], [0.2676, 0.2635, 0.2811]
-
-transform = transforms.Compose([
-                transforms.Lambda(lambda x: x.convert("RGB")),
-                transforms.Resize((img_size,img_size)),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=mean, std=std)
-            ])
-
-dataset    = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, transform=transform)
+dataset    = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size,augment=False, split=None)
+mean, std = dataset.mean_and_std()
+print(f"Dataset mean: {mean}")
+print(f"Dataset std: {std}")
 
 pad_idx    = dataset.vocab.stoi["<pad>"]
 
-train_dataset = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, transform=transform, split="train")
-val_dataset   = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, transform=transform, split="val")
-test_dataset  = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, transform=transform, split="test")
+train_dataset = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size, augment=augment, split="train")
+val_dataset   = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size, augment=augment, split="val")
+test_dataset  = Build_Dataset(root_dir, img_dir, caption_file, Vocabulary, img_size, augment=augment, split="test")
 train_loader  = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=MyCollate(pad_idx), generator=g)
 val_loader    = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
 test_loader   = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
