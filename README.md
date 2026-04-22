@@ -104,7 +104,7 @@ pip install -r requirements.txt
 ## Download Dataset
 ```bash
 kaggle datasets download -d vakadanaveen/stanford-image-paragraph-captioning-dataset
-unzip animefacedataset.zip -d data/
+unzip stanford-image-paragraph-captioning-dataset.zip -d data/
 ```
 
 ## Training
