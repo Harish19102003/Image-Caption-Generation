@@ -86,6 +86,7 @@ Example:
 ## Installation
 
 ```bash
+git clone https://github.com/Harish19102003/Image-Caption-Generation.git
 pip install -r requirements.txt
 ```
 
