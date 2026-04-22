@@ -93,6 +93,20 @@ pip install -r requirements.txt
 
 ---
 
+##  Dataset
+
+- **Name:** Anime Face Dataset  
+- **Source:** [Kaggle Dataset Link](https://www.kaggle.com/datasets/vakadanaveen/stanford-image-paragraph-captioning-dataset)  
+- **Description:** Contains approximately 20k images are labelled with their corresponding paragraphs.
+
+---
+
+## Download Dataset
+```bash
+kaggle datasets download -d vakadanaveen/stanford-image-paragraph-captioning-dataset
+unzip animefacedataset.zip -d data/
+```
+
 ## Training
 
 Run:
