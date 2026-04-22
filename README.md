@@ -19,7 +19,7 @@ This project implements an end-to-end deep learning pipeline for generating capt
   - Adam optimizer
 - Evaluation:
   - Caption generation and qualitative evaluation
-  - Metrics support (BLEU, etc.)
+  - Metrics support (BLEU)
 - Model Utilities:
   - Save and load trained models
   - Inference pipeline
@@ -42,7 +42,8 @@ Image-caption-generation/
 ├── train.py                       # Training pipeline
 ├── utils.py                       # Model loading & evaluation utilities
 ├── app.py                         # Gradio application
-└── README.md                      # Project documentation
+├── README.md                      # Project documentation
+└── requirements.txt               # 
 ```
 
 ---
@@ -93,11 +94,11 @@ pip install -r requirements.txt
 
 ---
 
-##  Dataset
+## Dataset
 
-- **Name:** Anime Face Dataset  
+- **Name:** Stanford Image Paragraph Captioning Dataset 
 - **Source:** [Kaggle Dataset Link](https://www.kaggle.com/datasets/vakadanaveen/stanford-image-paragraph-captioning-dataset)  
-- **Description:** Contains approximately 20k images are labelled with their corresponding paragraphs.
+- **Description:** Contains approximately 19,000 images images are labelled with their corresponding paragraphs.
 
 ---
 
@@ -111,7 +112,7 @@ unzip stanford-image-paragraph-captioning-dataset.zip -d data/
 
 Run:
 
-```bash
+```python
 python train.py
 ```
 
@@ -123,7 +124,7 @@ This will:
 
 ---
 ## To Resume training from an existing model.
-```bash
+```python
 python train.py --resume 
 ```
 ---
@@ -135,7 +136,7 @@ Handled in `utils.py`
 Run:
 
 ```python
-python -m utils.py
+python utils.py
 ```
 
 ---
@@ -152,7 +153,7 @@ tensorboard --logdir tb_logs
 
 Run:
 
-```bash
+```python
 python app.py
 ```
 
@@ -166,4 +167,15 @@ Input: Image
 Output: "A man riding a bicycle on a street"
 ```
 
+---
+## Configuration (`config.py`)
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `d_model` | 256 | Embedding dimension |
+| `n_heads` | 8 | Attention heads |
+| `n_layers` | 6 | Encoder/decoder layers |
+| `batch_size` | 64 | Training batch size |
+| `epochs` | 20 | Max training epochs |
+| `lr` | 1e-4 | Learning rate |
 ---
