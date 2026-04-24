@@ -19,7 +19,7 @@ This project implements an end-to-end deep learning pipeline for generating capt
   - Adam optimizer
 - Evaluation:
   - Caption generation and qualitative evaluation
-  - Metrics support (BLEU)
+  - Metrics support (BLEU, METEOR, CIDEr)
 - Model Utilities:
   - Save and load trained models
   - Inference pipeline
