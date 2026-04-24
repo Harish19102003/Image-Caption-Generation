@@ -43,7 +43,7 @@ Image-caption-generation/
 ├── utils.py                       # Model loading & evaluation utilities
 ├── app.py                         # Gradio application
 ├── README.md                      # Project documentation
-└── requirements.txt               # 
+└── requirements.txt               # Python dependencies
 ```
 
 ---
