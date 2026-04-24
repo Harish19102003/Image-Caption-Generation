@@ -135,6 +135,7 @@ class VisionTransformer(pl.LightningModule):
                  dataset= dataset,
                  pad_idx: int = 0):
         super().__init__()
+        
         self.dataset   = dataset
         self.pad_idx   = pad_idx
         self.d_model   = d_model
@@ -147,7 +148,7 @@ class VisionTransformer(pl.LightningModule):
             num_layers=n_layers)
         self.fc_out    = nn.Linear(d_model, input_dim)
         self.criterion = nn.CrossEntropyLoss(ignore_index=pad_idx)
-
+        self.save_hyperparameters(ignore=["dataset"])
     def make_masks(self, src, trg):
         """Create padding masks and causal mask."""
         trg_pad = (trg == self.pad_idx)
