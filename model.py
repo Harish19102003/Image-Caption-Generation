@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import pytorch_lightning as pl
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from get_loader import dataset
+from get_loader import input_dim, dataset, pad_idx
 from config import img_size, d_model, n_heads, n_layers, d_ff, dropout, max_len, lr, weight_decay
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -132,7 +132,7 @@ class VisionTransformer(pl.LightningModule):
                  d_ff: int,
                  dropout: float = 0.1,
                  max_len: int = 200,
-                 dataset= dataset,
+                 dataset= dataset, 
                  pad_idx: int = 0):
         super().__init__()
         
@@ -379,7 +379,7 @@ class VisionTransformer(pl.LightningModule):
             return self.beam_search(image, beam_size=beam_size, max_len=max_len)
 
 model = VisionTransformer(
-    input_dim=len(dataset.vocab),
+    input_dim=input_dim,
     img_size=img_size,
     d_model=d_model,
     n_heads=n_heads,
@@ -387,5 +387,7 @@ model = VisionTransformer(
     d_ff=d_ff,
     dropout=dropout,
     max_len=max_len,
+    dataset=dataset,
+    pad_idx=pad_idx
 )
 model = model.to(device)

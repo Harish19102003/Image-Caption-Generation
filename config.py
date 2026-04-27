@@ -8,16 +8,16 @@ output_file = "img_caption_model"
 model_path = Path(f"{output_dir}/{output_file}.ckpt")
 
 # Hyperparameters
-augment = False
+augment = True
 img_size = 224
-d_model = 256
+d_model = 512
 n_heads = 8
-n_layers = 3
-d_ff = 2 * d_model
+n_layers = 6
+d_ff = 4 * d_model
 dropout = 0.1
 max_len = 500
-lr = 1e-4
+lr =  3e-4 
 weight_decay = 1e-4
 grad_clip = 1.0
 epochs = 50
-batch_size = 32
+batch_size = 64

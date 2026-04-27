@@ -6,10 +6,11 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
 from config import epochs, grad_clip, output_dir, output_file, model_path
-from get_loader import train_loader, val_loader
+from get_loader import get_loaders
 from model import model
 import warnings
 
+train_loader, val_loader, _ = get_loaders()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

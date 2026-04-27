@@ -203,11 +203,17 @@ class MyCollate:
     
 
 dataset    = Build_Dataset(root_dir, img_dir, caption_file, True, img_size, augment=augment, split=None)
+input_dim  = len(dataset.vocab)
 pad_idx    = dataset.vocab.stoi["<pad>"]
 
-train_dataset = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=augment, split="train")
-val_dataset   = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=False, split="val")
-test_dataset  = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=False, split="test")
-train_loader  = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=MyCollate(pad_idx), generator=g)
-val_loader    = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
-test_loader   = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
+def get_loaders():
+    """Only called during training/evaluation, not inference."""
+    train_dataset = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=augment, split="train")
+    val_dataset   = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=False, split="val")
+    test_dataset  = Build_Dataset(root_dir, img_dir, caption_file, False, img_size, augment=False, split="test")
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True,  collate_fn=MyCollate(pad_idx), generator=g)
+    val_loader   = DataLoader(val_dataset,   batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
+    test_loader  = DataLoader(test_dataset,  batch_size=batch_size, shuffle=False, collate_fn=MyCollate(pad_idx), generator=g)
+
+    return train_loader, val_loader, test_loader

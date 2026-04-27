@@ -1,0 +1,18 @@
+# Python
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/htmlcov
+**/.coverage
+
+# Jupyter
+**/.ipynb_checkpoints
+**/*.ipynb
+
+# OS
+**/Thumbs.db
+
+# Project-specific
+**/data
+**/tb_logs
+**/checkpoints

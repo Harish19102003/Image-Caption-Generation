@@ -6,9 +6,11 @@ from nltk.translate.meteor_score import meteor_score
 from pycocoevalcap.cider.cider import Cider
 from model import VisionTransformer, device
 import pytorch_lightning as pl
-from get_loader import dataset, test_loader
+from get_loader import dataset, get_loaders
 from config import model_path, img_size, d_model, n_heads, n_layers, d_ff, dropout, max_len
 import warnings
+
+_, _, test_loader = get_loaders()
 
 if device.type == "cuda":
     torch.set_float32_matmul_precision( 'high')
