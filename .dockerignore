@@ -14,5 +14,6 @@
 
 # Project-specific
 **/data
+**/lightning_logs
 **/tb_logs
 **/checkpoints
