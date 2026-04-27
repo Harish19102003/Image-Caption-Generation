@@ -93,8 +93,6 @@ git clone https://github.com/Harish19102003/Image-Caption-Generation.git
 cd Image-Caption-Generation
 pip install uv 
 uv pip install --system -r requirements.txt 
-uv pip install --system torch torchvision --index-url https://download.pytorch.org/whl/cu130 
-python -m spacy download en_core_web_sm
 ```
 
 ---
@@ -160,7 +158,7 @@ tensorboard --logdir tb_logs
 python app.py
 ```
 
-Then open http://localhost:7860 in your browser.
+Then open `http://localhost:7860` in your browser.
 
 Features:
 - Upload an image
@@ -176,7 +174,7 @@ Build and run the Gradio app in a container:
 docker compose up --build
 ```
 
-Then open http://localhost:7860 in your browser.
+Then open `http://localhost:7860` in your browser.
 
 On subsequent runs (no code changes):
 
