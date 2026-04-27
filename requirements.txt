@@ -7,7 +7,5 @@ pycocoevalcap
 pytorch_lightning
 rouge_score
 spacy
-torch
 torchtext
-torchvision
 tensorboardX

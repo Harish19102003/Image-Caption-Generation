@@ -9,6 +9,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     pip install uv && \
     uv pip install --system -r requirements.txt && \
+    uv pip install --system torch torchvision --index-url https://download.pytorch.org/whl/cu130 \
     python -m spacy download en_core_web_sm
 
 COPY . .

@@ -91,7 +91,9 @@ Example:
 ```bash
 git clone https://github.com/Harish19102003/Image-Caption-Generation.git
 cd Image-Caption-Generation
-pip install -r requirements.txt
+pip install uv 
+uv pip install --system -r requirements.txt 
+uv pip install --system torch torchvision --index-url https://download.pytorch.org/whl/cu130 
 python -m spacy download en_core_web_sm
 ```
 
